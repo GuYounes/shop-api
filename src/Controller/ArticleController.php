@@ -31,12 +31,16 @@ class ArticleController extends Controller
         $article = $repo->find(["id" => $id]);
 
         if(is_null($article)) {
-            return new Response(json_encode(["error" => "Page not found"]), 404);
+            return new Response(json_encode(["error" => "The article with ID $id doesn't exists"]), 404);
         }
 
         $serializer = Serializer::create()->build();
         $json = $serializer->serialize($article, 'json');
-        return new Response($json);
+
+        $response = new Response($json);
+        $response->headers->set("Allow-Access-Origin", "*");
+
+        return $response;
     }
 
     /**
@@ -54,14 +58,18 @@ class ArticleController extends Controller
 
         $serializer = Serializer::create()->build();
         $json = $serializer->serialize($articles, 'json');
-        return new Response($json);
+
+        $response = new Response($json);
+        $response->headers->set("Allow-Access-Origin", "*");
+
+        return $response;
     }
 
     /**
      * @param Request $request
      * @return Response
      *
-     * @Route("/articles", name="create_article", requirements={"_format": "json|xml"}, defaults={"_format": "json"}, methods={"POST"})
+     * @Route("/articles", name="create_article", defaults={"_format": "json"}, methods={"POST"})
      */
     public function createArticleAction(Request $request)
     {
@@ -93,6 +101,8 @@ class ArticleController extends Controller
             Return new Response(json_encode(["error" => "Your media is not supported", "media supported" => ["json", "xml" ]]), 415);
         }
 
+        $article->setId(null);
+
         if (!$validator->validate($article)) {
             return new Response(json_encode($validator->getValidationErrors()), 400);
         }
@@ -101,13 +111,54 @@ class ArticleController extends Controller
         $article->setCategorie($categorie);
 
         if(is_null($categorie)){
-            return new Response(json_encode(["error" => "The article's category doesn't ex  isist"]), 400);
+            return new Response(json_encode(["error" => "The article's category doesn't exist"]), 400);
         }
 
         $em->persist($article);
         $em->flush();
 
         $jsonArticle = $serializer->serialize($article, 'json');
-        return new Response($jsonArticle);
+
+        $response = new Response($jsonArticle);
+        $response->headers->set("Allow-Access-Origin", "*");
+
+        return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @return Response
+     *
+     * @Route("/articles/{id}", name="get_article", requirements={"id"="\d+"}, defaults={"_format": "json"}, methods={"DELETE"})
+     */
+    public function deleteArticleAction(Request $request, int $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $categorieRepo = $em->getRepository(Categorie::class);
+
+        $serializer = Serializer::create()->build();
+        $validator = ArticleValidator::getInstance();
+        $article = null;
+
+        if (!$validator->validate($article)) {
+            return new Response(json_encode($validator->getValidationErrors()), 400);
+        }
+
+        $categorie = $categorieRepo->find($article->getCategorie()->getId());
+        $article->setCategorie($categorie);
+
+        if(is_null($categorie)){
+            return new Response(json_encode(["error" => "The article's category doesn't exist"]), 400);
+        }
+
+        $em->persist($article);
+        $em->flush();
+
+        $jsonArticle = $serializer->serialize($article, 'json');
+
+        $response = new Response($jsonArticle);
+        $response->headers->set("Allow-Access-Origin", "*");
+
+        return $response;
     }
 }
