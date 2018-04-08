@@ -22,10 +22,6 @@ class ArticleValidator{
     public function validate(Article $article) : bool {
         $this->errors = ["error" => []];
 
-        if (!is_null($article->getId())) {
-            $this->errors["error"]["id"][] = "id has to be null";
-        }
-
         if (is_null($article->getLibelle()) || empty(trim($article->getLibelle()))) {
             $this->errors["error"]["libelle"][] = "libelle is null or empty";
         }

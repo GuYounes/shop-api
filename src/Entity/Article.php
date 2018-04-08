@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\EntityValidator\CategorieValidator;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as JMS;
 
@@ -43,7 +44,7 @@ class Article
     private $prix;
 
     /**
-     * @var \Categorie
+     * @var Categorie
      *
      * @ORM\ManyToOne(targetEntity="Categorie")
      * @ORM\JoinColumns({
@@ -131,6 +132,16 @@ class Article
     public function setCategorie(Categorie $categorie)
     {
         $this->categorie = $categorie;
+    }
+
+    /**
+     * @param Article $article
+     */
+    public function replaceWith(Article $article)
+    {
+        $this->setPrix($article->getPrix());
+        $this->setLibelle($article->getLibelle());
+        $this->setCategorie($article->getCategorie());
     }
 
 }

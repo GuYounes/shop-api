@@ -75,4 +75,9 @@ class Categorie
     {
         $this->libelle = $libelle;
     }
+
+    public function replaceWith(Categorie $article)
+    {
+        $this->setLibelle($article->getLibelle());
+    }
 }
